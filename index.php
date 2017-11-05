@@ -11,7 +11,7 @@
      $rows = execQuery($select);
      echo count($rows) . ' records have id < 6<br>';
      $header = 'SHOW COLUMNS FROM accounts';
-     $heading = execQuery($header);
+     $heading = getHeading($header);
      echo table($heading,$rows);     
   }
   catch(PDOException $e) {
@@ -32,19 +32,26 @@
      }
   }
 
+  function getHeading($query){
+     global $conn;
+     try {
+        $sql = $conn->prepare($query);
+        $sql->execute();
+        $results = $sql->fetchAll(PDO::FETCH_COLUMN);
+        $sql->closeCursor();
+        return $results;
+     }
+     catch(PDOException $e) {
+        http_error("500 Internal Server Error\n\n" . "There was a SQL error:\n\n" . $e->getMessage() . "<br>");
+     }
+  }
+
   function table($heading,$rows) {
-     //print_r($heading);
-     //echo '<br>';
      $table = NULL;
      $table .= "<table border = 1>";
-     /*foreach ($heading as $row) {
-        $table .= "<th>";
-	foreach ($row as $column) {
-           $table .= "<td>$column[Field]</td>";
-	}
-	$table .= "</th>";
-
-     }*/ 
+     foreach ($heading  as $head) {
+        $table .= "<td>$head</td>";
+     }   
      foreach ($rows as $row) {
         $table .= "<tr>";
         foreach ($row as $column) {
